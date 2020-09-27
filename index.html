@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>look mom i have a mongo database</h1>
+    <form action="/addProduct" method="post" >
+        <input type="text" placeholder="name" name="product">
+        <input type="text" placeholder="price" name="price">
+        <input type="text" placeholder="quarntity" name="quarntity">
+        <button type='submit'> addProduct</button>
+    </form>
+
+    
+
+    <div id="products">
+
+    </div>
+
+    <div id="update">
+
+    </div>
+
+    <script>
+        function loadAllProducts(){
+        fetch('/products')
+        .then(res => res.json())
+        .then( product => {
+            
+            const conttainer = document.getElementById("products");
+            conttainer.innerHTML = '';
+            product.forEach(pd => {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>quarntity: ${pd.quarntity}</strong>, --price:${pd.price}
+                <button onclick="loadProduct('${pd._id}')"> update</button>
+
+                <button onclick="deletProduct(event, '${pd._id}')"> delete</button>
+                `;
+                conttainer.appendChild(p);
+            });
+        })
+    }
+    loadAllProducts();
+
+    function loadProduct(id) {
+        fetch(`product/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            const update = document.getElementById("update");
+            update.innerHTML= `
+            <h3>Update: ${data._id} </h3>
+            price: <input type="text" value="${data.price}" id="price">
+            <br>
+            quarntity: <input type="text" value="${data.quarntity}" id="quarntity">
+            <br>
+            <button onclick="updateProduct('${data._id}')"> submit</button>
+            `;
+        })
+    }
+
+        function updateProduct(id) {
+            console.log('hit inside');
+            const price = document.getElementById('price').value;
+            const quarntity = document.getElementById('quarntity').value;
+            const product ={id , price, quarntity};
+            fetch(`/update/${id}` , {
+                method: 'PATCH',
+                headers: {'Content-type': 'application/json'},
+                body: JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(data => {
+               if (data) {
+                   loadAllProducts();
+                   const update = document.getElementById("update");
+            update.innerHTML= '';
+               }
+            })
+        }
+            
+
+        function deletProduct(event, id){
+            fetch(`/delete/${id}` , {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (resuli) {
+               event.target.parentNode.style.display='none';
+           }
+            })
+        }
+    </script>
+</body>
+</html>
